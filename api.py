@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
 import openai
 import os
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
+limiter = Limiter(app, key_func=get_remote_address)
 
 
 def openai_complete(comment, prompt_start):
@@ -26,6 +29,7 @@ def openai_complete(comment, prompt_start):
 
 
 @app.route('/negativity_finder/', methods=['POST'])
+@limiter.limit("3/minute")
 def respond():
     text = request.form.get("text", None)
 
