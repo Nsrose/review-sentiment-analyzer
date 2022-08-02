@@ -32,7 +32,7 @@ def respond():
     response = {}
 
     if not text:
-        response["ERROR"] = "No review text found. Please supply the text of the review in the request body".
+        response["ERROR"] = "No review text found. Please supply the text of the review in the request body"
     else:
         openai_response = openai_complete(text, prompt_start="Find anything negative mentioned in this review:\n\n")
         response_text = openai_response.get('choices')[0].text.strip("\n")
