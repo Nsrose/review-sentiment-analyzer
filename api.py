@@ -19,8 +19,8 @@ def openai_complete(comment, prompt_start):
         temperature=0,
         max_tokens=512,
         top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
+        frequency_penalty=1.9,
+        presence_penalty=1.7
         )
     return response
 
@@ -32,7 +32,7 @@ def respond():
     response = {}
 
     if not text:
-        response["ERROR"] = "No review text found. Please supply the text of the review in the request body"
+        response["ERROR"] = "No review text found. Please supply the 'text' directly in the request body."
     else:
         openai_response = openai_complete(text, prompt_start="Find anything negative mentioned in this review:\n\n")
         response_text = openai_response.get('choices')[0].text.strip("\n")
