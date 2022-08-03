@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_api import status
 import openai
 import os
 from flask_limiter import Limiter
@@ -36,20 +37,21 @@ def respond():
 
     response = {}
 
-    if not text:
-        response["ERROR"] = "No review text found. Please supply the 'text' directly in the request body."
+    ## Validations ##
+
+    if not text or detect(text) != "en":
+        return "No review text found. Please supply the 'text' directly in the request body.", status.HTTP_400_BAD_REQUEST
+    elif detect(text) != "en":
+        return "Unsupported language. Right now only English is supported.", status.HTTP_400_BAD_REQUEST
+
+    ## passed validation ## 
+
     else:
-        if detect(text) != "en":
-            response["ERROR"] = "Unsupported language. Right now only English is supported."
-            return jsonify(response)
         openai_response = openai_complete(text, prompt_start="Find anything negative mentioned in this review:\n\n")
         response_text = openai_response.get('choices')[0].text.strip("\n")
         response['Review text'] = text
         response['Sentiment'] = response_text
-
-
-    # Return the response in json format
-    return jsonify(response)
+        return jsonify(response)
 
 
 
