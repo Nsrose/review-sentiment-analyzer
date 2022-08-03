@@ -6,6 +6,8 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from langdetect import detect
 
+# import pdb
+
 app = Flask(__name__)
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
@@ -33,13 +35,14 @@ def openai_complete(comment, prompt_start):
 @app.route('/negativity_finder/', methods=['POST'])
 @limiter.limit("3/minute")
 def respond():
-    text = request.form.get("text", None)
+    content = request.get_json()
+    text = content.get("text", None)
 
     response = {}
 
     ## Validations ##
 
-    if not text or detect(text) != "en":
+    if not text:
         return "No review text found. Please supply the 'text' directly in the request body.", status.HTTP_400_BAD_REQUEST
     elif detect(text) != "en":
         return "Unsupported language. Right now only English is supported.", status.HTTP_400_BAD_REQUEST
