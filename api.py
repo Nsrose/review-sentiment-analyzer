@@ -3,6 +3,7 @@ import openai
 import os
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from langdetect import detect
 
 app = Flask(__name__)
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
@@ -38,6 +39,9 @@ def respond():
     if not text:
         response["ERROR"] = "No review text found. Please supply the 'text' directly in the request body."
     else:
+        if detect(text) != "en":
+            response["ERROR"] = "Unsupported language. Right now only English is supported."
+            return jsonify(response)
         openai_response = openai_complete(text, prompt_start="Find anything negative mentioned in this review:\n\n")
         response_text = openai_response.get('choices')[0].text.strip("\n")
         response['Review text'] = text
