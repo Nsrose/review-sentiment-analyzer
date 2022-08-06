@@ -5,36 +5,20 @@ import os
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from langdetect import detect
+from models import *
+from airbnb import *
 
 # import pdb
 
 app = Flask(__name__)
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
 limiter = Limiter(app, key_func=get_remote_address)
 
 
-def openai_complete(comment, prompt_start):
-    openai.api_key = OPENAI_API_KEY
-    prompt = prompt_start
-    prompt += 'Text: "{}"'.format(comment) + '\n\n'
-    prompt += "Label: "
-
-    response = openai.Completion.create(
-        model="text-davinci-002",
-        prompt=prompt,
-        temperature=0,
-        max_tokens=512,
-        top_p=1,
-        frequency_penalty=1.9,
-        presence_penalty=1.7
-        )
-    return response
-
 
 @app.route('/negativity_finder/', methods=['POST'])
 @limiter.limit("3/minute")
-def respond():
+def negativity_finder():
     content = request.get_json()
     text = content.get("text", None)
 
@@ -55,6 +39,51 @@ def respond():
         response['Review text'] = text
         response['Sentiment'] = response_text
         return jsonify(response)
+
+
+
+@app.route('/negativity_finder/airbnb/<PropertyID>', methods=["POST"])
+@limiter.limit("3/minute")
+def airbnb_negativity_finder_by_property(PropertyID):
+    summarize = request.args.get('summarize', None)
+    debug = request.args.get('debug', None)
+
+
+    if debug:
+        review_classifications = classify_property_reviews(PropertyID)
+        review_classifications_sentiment_only = [x['sentiment'] for x in review_classifications]
+        s = set(review_classifications_sentiment_only)
+        if 'N/A' in s:
+            s.remove('N/A')
+        elif 'There is nothing negative mentioned in this review.' in s:
+            s.remove('There is nothing negative mentioned in this review.')
+
+        new_set = {item.strip('"') for item in s}
+        text = "{}".format(' '.join(new_set))
+        prompt = "Summarize this review in 1 sentence:\n\n"
+        prompt += "'{}'".format(text) + '\n\n\n\n'
+        response_data = {}
+        response_data["prompt"] = prompt
+        response_data["review_classifications"] = review_classifications
+        response_data["summary"] = openai.Completion.create(
+              model="text-davinci-002",
+              prompt=prompt,
+              temperature=0,
+              max_tokens=100,
+              top_p=1,
+              frequency_penalty=0,
+              presence_penalty=0
+            ).get('choices')[0].text.strip('\n')
+        return jsonify(response_data)
+
+
+    elif summarize:
+        summary = summarize_airbnb_property(PropertyID)
+        return jsonify(summary)
+
+
+
+    return jsonify(classify_property_reviews(PropertyID))
 
 
 
