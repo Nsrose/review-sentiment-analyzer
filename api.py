@@ -8,10 +8,10 @@ from langdetect import detect
 from openai_interface import *
 from airbnb import *
 from models import *
-
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 
 limiter = Limiter(app, key_func=get_remote_address)
 
