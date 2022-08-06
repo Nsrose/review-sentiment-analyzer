@@ -5,14 +5,16 @@ import os
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from langdetect import detect
-from models import *
+from openai_interface import *
 from airbnb import *
+from models import *
 
-# import pdb
 
 app = Flask(__name__)
 
+
 limiter = Limiter(app, key_func=get_remote_address)
+
 
 
 
@@ -76,10 +78,10 @@ def airbnb_negativity_finder_by_property(PropertyID):
             ).get('choices')[0].text.strip('\n')
         return jsonify(response_data)
 
-
     elif summarize:
-        summary = summarize_airbnb_property(PropertyID)
-        return jsonify(summary)
+        
+        result = summarize_airbnb_property(PropertyID)
+        return jsonify(result)
 
 
 

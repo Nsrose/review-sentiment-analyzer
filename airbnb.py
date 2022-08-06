@@ -1,5 +1,5 @@
 import requests
-from models import *
+from openai_interface import *
 
 AIRBNB_API_URL = "https://airbnb19.p.rapidapi.com/api/v1/"
 AIRBNB_API_KEY = "1ec0438affmsh25e64f02c10068ep18fb12jsn900feee46bfb"
@@ -75,6 +75,16 @@ def summarize_reviews(review_classifications):
 
 
 def summarize_airbnb_property(propertyid):
-	review_classifications = classify_property_reviews(propertyid)
-	summarization = summarize_reviews(review_classifications)
-	return summarization
+	## old way #
+	# review_classifications = classify_property_reviews(propertyid)
+	# summarization = summarize_reviews(review_classifications)
+	# return summarization
+
+	# new way #
+
+	reviews = get_reviews(propertyid)
+	comments = reviews_to_comments(reviews)
+	text = ' '.join(comments)
+	prompt = "Here are several reviews for an Airbnb listing. What do people not like about this listing?"
+	response = openai_summarize(text, prompt, completion_start="Summary:")
+	return response.get('choices')[0].text.strip('\n')
