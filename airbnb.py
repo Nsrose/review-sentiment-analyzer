@@ -75,16 +75,22 @@ def summarize_reviews(review_classifications):
 
 
 def summarize_airbnb_property(propertyid):
-	## old way #
-	# review_classifications = classify_property_reviews(propertyid)
-	# summarization = summarize_reviews(review_classifications)
-	# return summarization
-
-	# new way #
-
 	reviews = get_reviews(propertyid)
 	comments = reviews_to_comments(reviews)
 	text = ' '.join(comments)
 	prompt = "Here are several reviews for an Airbnb listing. What do people not like about this listing?"
 	response = openai_summarize(text, prompt, completion_start="Summary:")
 	return response.get('choices')[0].text.strip('\n')
+
+
+
+def answer_question(propertyid, question):
+	reviews = get_reviews(propertyid)
+	comments = reviews_to_comments(reviews)
+	text = ' '.join(comments)
+	prompt = "Here are several reviews for an Airbnb listing. "
+	prompt += question
+
+	response = openai_summarize(text, prompt, completion_start="Answer:")
+	return response.get('choices')[0].text.strip('\n')
+

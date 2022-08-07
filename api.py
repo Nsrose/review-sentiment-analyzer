@@ -6,7 +6,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from langdetect import detect
 from openai_interface import *
-from airbnb import *
+import airbnb
 from models import *
 from flask_cors import CORS
 
@@ -52,7 +52,7 @@ def airbnb_negativity_finder_by_property(PropertyID):
 
 
     if debug:
-        review_classifications = classify_property_reviews(PropertyID)
+        review_classifications = airbnb.classify_property_reviews(PropertyID)
         review_classifications_sentiment_only = [x['sentiment'] for x in review_classifications]
         s = set(review_classifications_sentiment_only)
         if 'N/A' in s:
@@ -80,13 +80,33 @@ def airbnb_negativity_finder_by_property(PropertyID):
 
     elif summarize:
         
-        result = summarize_airbnb_property(PropertyID)
+        result = airbnb.summarize_airbnb_property(PropertyID)
         return jsonify(result)
 
 
 
-    return jsonify(classify_property_reviews(PropertyID))
+    return jsonify(airbnb.classify_property_reviews(PropertyID))
 
+
+@app.route('/qna/airbnb/<PropertyID>', methods=["POST"])
+@limiter.limit("3/minute")
+def qna_airbnb(PropertyID):
+    question = request.args.get('question', None)
+
+    if not question:
+        response = "Please supply a question as part of the request arguments."
+        return response, status.HTTP_400_BAD_REQUEST
+
+
+    if question[-1] != "?":
+        question += "?"
+
+    answer = airbnb.answer_question(PropertyID, question)
+
+    return jsonify({
+        "question" : question,
+        "answer" : answer
+        })
 
 
 
