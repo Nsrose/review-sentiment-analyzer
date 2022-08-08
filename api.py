@@ -9,6 +9,10 @@ from openai_interface import *
 import airbnb
 from models import *
 from flask_cors import CORS
+import requests
+
+
+import pdb
 
 app = Flask(__name__)
 CORS(app)
@@ -107,6 +111,20 @@ def qna_airbnb(PropertyID):
         "question" : question,
         "answer" : answer
         })
+
+
+@app.route('/util/airbnb/unshorten', methods=["POST"])
+def unshorten_airbnb():
+    content = request.get_json()
+    shortURL = content.get("shortURL", None)
+
+    url = "https://unshorten.me/s/" + shortURL
+
+    longURL = requests.get(url).text.strip('\n')
+    
+
+    return jsonify(longURL)
+
 
 
 
