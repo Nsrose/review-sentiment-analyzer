@@ -24,7 +24,7 @@ def openai_complete(comment, prompt_start, completion_start="Label: "):
     return response
 
 
-def openai_summarize(text, prompt, completion_start="", temperature=0, max_tokens=500, top_p=1, frequency_penalty=0, presence_penalty=0):
+def openai_summarize(text, prompt, completion_start="", temperature=0, max_tokens=200, top_p=1, frequency_penalty=0, presence_penalty=0):
 	openai.api_key = OPENAI_API_KEY
 	prompt += "\n\n"
 	prompt += '"{}"'.format(text)  + "\n\n##\n\n"
