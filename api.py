@@ -6,7 +6,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from langdetect import detect
 from openai_interface import *
-import airbnb
+import airbnb, amazon
 from models import *
 from flask_cors import CORS
 import requests
@@ -106,6 +106,33 @@ def qna_airbnb(PropertyID):
         question += "?"
 
     answer = airbnb.answer_question(PropertyID, question)
+
+    return jsonify({
+        "question" : question,
+        "answer" : answer
+        })
+
+
+@app.route('/negativity_finder/amazon/<ProductID>', methods=["POST"])
+@limiter.limit("3/minute")
+def negativity_finder_amazon(ProductID):
+    result = amazon.summarize_amazon_product(ProductID)
+    return jsonify(result)
+
+@app.route('/qna/amazon/<ProductID>', methods=["POST"])
+@limiter.limit("3/minute")
+def qna_amazon(ProductID):
+    question = request.args.get('question', None)
+
+    if not question:
+        response = "Please supply a question as part of the request arguments."
+        return response, status.HTTP_400_BAD_REQUEST
+
+
+    if question[-1] != "?":
+        question += "?"
+
+    answer = amazon.answer_question(ProductID, question)
 
     return jsonify({
         "question" : question,
