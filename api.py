@@ -20,6 +20,23 @@ CORS(app)
 limiter = Limiter(app, key_func=get_remote_address)
 
 
+@app.route('/qna/', methods=["POST"])
+@limiter.limit("3/minute")
+def qna():
+    content = request.get_json()
+    text = content.get("text", None)
+    question = content.get("question", None)
+
+    if not text:
+        return "No text found. Please supply the 'text' directly in the request body.", status.HTTP_400_BAD_REQUEST
+    elif not question:
+        return "No question found. Please supply the 'question' directly in the request body.", status.HTTP_400_BAD_REQUEST
+
+    answer = openai_answer(question, text, completion_start="Answer:").get('choices')[0].text.strip('\n')
+    return jsonify({
+        "question" : question,
+        "answer" : answer
+    })
 
 
 @app.route('/negativity_finder/', methods=['POST'])
