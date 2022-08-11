@@ -41,7 +41,7 @@ def openai_summarize(text, prompt, completion_start="", temperature=0, max_token
 		)
 
 
-def openai_answer(question, text, extra_context="", max_tokens=100, completion_start=""):
+def openai_answer(question, text, extra_context="", temperature=0, max_tokens=100, completion_start=""):
     openai.api_key = OPENAI_API_KEY
     prompt = extra_context + '\n\n'
     prompt += text + "\n\n"
@@ -51,5 +51,6 @@ def openai_answer(question, text, extra_context="", max_tokens=100, completion_s
     return openai.Completion.create(
         model='text-davinci-002',
         prompt=prompt,
-        max_tokens=max_tokens
+        max_tokens=max_tokens,
+        temperature=temperature
     )
