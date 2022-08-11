@@ -12,5 +12,7 @@ db = SQLAlchemy()
 class AirbnbComparisonSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    airbnbDetails = db.Column(db.String)
+
     def __repr__(self):
         return '<Airbnb Comparison Session %s>' % self.id

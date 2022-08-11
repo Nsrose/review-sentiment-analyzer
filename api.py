@@ -27,7 +27,7 @@ api = Api(app) # new
 
 class AirbnbComparisonSessionSchema(ma.Schema):
     class Meta:
-        fields = ("id",)
+        fields = ("id", "airbnbDetails")
         model = AirbnbComparisonSession
 
 
@@ -43,6 +43,7 @@ class AirbnbComparisonSessionListResource(Resource):
 
     def post(self):
         new_session = AirbnbComparisonSession(
+            airbnbDetails=request.json['AirbnbDetails']
         )
         db.session.add(new_session)
         db.session.commit()
