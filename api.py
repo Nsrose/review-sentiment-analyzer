@@ -10,11 +10,61 @@ import airbnb, amazon
 from models import *
 from flask_cors import CORS
 import requests
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
+from flask_restful import Api, Resource
 
 
-import pdb
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db' # new
+db.init_app(app)
+ma = Marshmallow(app)
+api = Api(app) # new
+
+
+
+class AirbnbComparisonSessionSchema(ma.Schema):
+    class Meta:
+        fields = ("id",)
+        model = AirbnbComparisonSession
+
+
+
+
+airbnb_comparison_session_schema = AirbnbComparisonSessionSchema()
+airbnb_comparison_sessions_schema = AirbnbComparisonSessionSchema(many=True)
+
+class AirbnbComparisonSessionListResource(Resource):
+    def get(self):
+        airbnb_comparison_sessions = AirbnbComparisonSession.query.all()
+        return airbnb_comparison_sessions_schema.dump(airbnb_comparison_sessions)
+
+    def post(self):
+        new_session = AirbnbComparisonSession(
+        )
+        db.session.add(new_session)
+        db.session.commit()
+        return airbnb_comparison_session_schema.dump(new_session)
+
+
+class AirbnbComparisonSessionResource(Resource):
+    def get(self, session_id):
+        session = AirbnbComparisonSession.query.get_or_404(session_id)
+        return airbnb_comparison_session_schema.dump(session)
+
+api.add_resource(AirbnbComparisonSessionResource, '/airbnbcomparisonsessions/<int:session_id>')
+api.add_resource(AirbnbComparisonSessionListResource, '/airbnbcomparisonsessions/')
+
+with app.app_context():
+    db.create_all()
+
+
+
+
+
+
 CORS(app)
 
 limiter = Limiter(app, key_func=get_remote_address)
