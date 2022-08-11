@@ -13,6 +13,7 @@ import requests
 from flask import Flask
 from flask_marshmallow import Marshmallow
 from flask_restful import Api, Resource
+import json
 
 
 
@@ -41,8 +42,11 @@ class AirbnbComparisonSessionListResource(Resource):
         return airbnb_comparison_sessions_schema.dump(airbnb_comparison_sessions)
 
     def post(self):
+        request_dict = request.json["AirbnbDetails"]
+        session_string = json.dumps(request_dict)
+
         new_session = AirbnbComparisonSession(
-            airbnbDetails=request.json['AirbnbDetails']
+            airbnbDetails=session_string
         )
         db.session.add(new_session)
         db.session.commit()
