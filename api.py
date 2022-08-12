@@ -83,7 +83,7 @@ CORS(app)
 
 limiter = Limiter(app, key_func=get_remote_address)
 
-@cache.memoize(1000)
+@cache.memoize(86400) #cache for 24 hours
 def get_answer(text, question):
     answer = openai_answer(question, text, completion_start="Answer:").get('choices')[0].text.strip('\n')
     return jsonify({
@@ -92,7 +92,6 @@ def get_answer(text, question):
     })
 
 @app.route('/qna/', methods=["POST"])
-# @limiter.limit("1/minute")
 def qna():
     content = request.get_json()
     text = content.get("text", None)
@@ -104,11 +103,6 @@ def qna():
         return "No question found. Please supply the 'question' directly in the request body.", status.HTTP_400_BAD_REQUEST
 
     return get_answer(text, question)
-    # answer = openai_answer(question, text, completion_start="Answer:").get('choices')[0].text.strip('\n')
-    # return jsonify({
-    #     "question" : question,
-    #     "answer" : answer
-    # })
 
 
 @app.route('/negativity_finder/', methods=['POST'])
