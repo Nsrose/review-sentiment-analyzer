@@ -14,14 +14,24 @@ from flask import Flask
 from flask_marshmallow import Marshmallow
 from flask_restful import Api, Resource
 import json
+from flask import Flask
+from flask_caching import Cache
 
 
+
+config = {
+    "DEBUG": True,          # some Flask specific configs
+    "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
+    "CACHE_DEFAULT_TIMEOUT": 300,
+    'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'
+}
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db' # new
+app.config.from_mapping(config)
 db.init_app(app)
 ma = Marshmallow(app)
-api = Api(app) # new
+api = Api(app) 
+cache = Cache(app)
 
 
 
@@ -73,9 +83,16 @@ CORS(app)
 
 limiter = Limiter(app, key_func=get_remote_address)
 
+@cache.memoize(1000)
+def get_answer(text, question):
+    answer = openai_answer(question, text, completion_start="Answer:").get('choices')[0].text.strip('\n')
+    return jsonify({
+        "question" : question,
+        "answer" : answer
+    })
 
 @app.route('/qna/', methods=["POST"])
-@limiter.limit("3/minute")
+# @limiter.limit("1/minute")
 def qna():
     content = request.get_json()
     text = content.get("text", None)
@@ -86,11 +103,12 @@ def qna():
     elif not question:
         return "No question found. Please supply the 'question' directly in the request body.", status.HTTP_400_BAD_REQUEST
 
-    answer = openai_answer(question, text, completion_start="Answer:").get('choices')[0].text.strip('\n')
-    return jsonify({
-        "question" : question,
-        "answer" : answer
-    })
+    return get_answer(text, question)
+    # answer = openai_answer(question, text, completion_start="Answer:").get('choices')[0].text.strip('\n')
+    # return jsonify({
+    #     "question" : question,
+    #     "answer" : answer
+    # })
 
 
 @app.route('/negativity_finder/', methods=['POST'])
@@ -210,18 +228,20 @@ def qna_amazon(ProductID):
         "answer" : answer
         })
 
+@cache.memoize(timeout=10000)
+def get_unshortened_url(shortURL):
+    url = "https://unshorten.me/s/" + shortURL
+
+    longURL = requests.get(url).text.strip('\n')
+    return jsonify(longURL)
+
 
 @app.route('/util/airbnb/unshorten', methods=["POST"])
 def unshorten_airbnb():
     content = request.get_json()
     shortURL = content.get("shortURL", None)
+    return get_unshortened_url(shortURL)
 
-    url = "https://unshorten.me/s/" + shortURL
-
-    longURL = requests.get(url).text.strip('\n')
-    
-
-    return jsonify(longURL)
 
 
 
