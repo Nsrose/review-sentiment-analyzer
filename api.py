@@ -105,6 +105,21 @@ def qna():
     return get_answer(text, question)
 
 
+@app.route('/reviews/airbnb/<PropertyID>', methods=["GET"])
+@cache.memoize(604800) #cache for a week
+def airbnb_reviews(PropertyID):
+    reviews = airbnb.get_reviews(PropertyID)
+    comments = airbnb.reviews_to_comments(reviews)
+
+    compress = request.args.get('compress', None)
+    if compress:
+        text = ' '.join(comments)
+        return jsonify(text)
+    return jsonify(reviews)
+
+
+
+
 @app.route('/negativity_finder/', methods=['POST'])
 @limiter.limit("3/minute")
 def negativity_finder():
