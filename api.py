@@ -17,6 +17,7 @@ import json
 from flask import Flask
 from flask_caching import Cache
 
+import pdb
 
 
 config = {
@@ -118,6 +119,20 @@ def airbnb_reviews(PropertyID):
     return jsonify(reviews)
 
 
+@cache.memoize(604800) #cache for a week
+def fetch_amazon_reviews(ProductID, compress):
+    reviews = amazon.get_reviews(ProductID)
+    if compress:
+        comments = amazon.reviews_to_comments(reviews)
+        text = ' '.join(comments)
+        return jsonify(text)
+    return jsonify(reviews)
+
+@app.route('/reviews/amazon/<ProductID>', methods=["GET"])
+def amazon_reviews(ProductID):
+    compress = request.args.get('compress', None)
+    return fetch_amazon_reviews(ProductID, compress)
+    
 
 
 @app.route('/negativity_finder/', methods=['POST'])
