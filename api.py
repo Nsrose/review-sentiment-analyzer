@@ -6,7 +6,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from langdetect import detect
 from openai_interface import *
-import airbnb, amazon
+import airbnb, amazon, googlemaps
 from models import *
 from flask_cors import CORS
 import requests
@@ -117,7 +117,15 @@ def airbnb_reviews(PropertyID):
         return jsonify(text)
     return jsonify(reviews)
 
-
+@app.route('/reviews/googlemaps/<PlaceID>', methods=["GET"])
+def googelmaps_reviews(PlaceID):
+    reviews = googlemaps.get_reviews(PlaceID)
+    comments = googlemaps.reviews_to_comments(reviews)
+    compress = request.args.get('compress', None)
+    if compress:
+        text = ' '.join(comments)
+        return jsonify(text)
+    return jsonify(reviews)
 
 
 @app.route('/negativity_finder/', methods=['POST'])
