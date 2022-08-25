@@ -119,19 +119,22 @@ def airbnb_reviews(PropertyID):
 
 
 
-@app.route('/humblebrag/', methods=["POST"])
 @cache.memoize(604800)
+def get_humblebrag(text):
+    classification = openai_classify_humblebrag(text).get('choices')[0].text.strip('\n')
+    return jsonify({
+        "text" : text,
+        "label" : classification
+    })
+
+@app.route('/humblebrag/', methods=["POST"])
 def humblebrag():
     content = request.get_json()
     text = content.get('text', None)
     if not text:
         return "No text found. Please supply the 'text' directly in the request body.", status.HTTP_400_BAD_REQUEST
 
-    classification = openai_classify_humblebrag(text).get('choices')[0].text.strip('\n')
-    return jsonify({
-        "text" : text,
-        "label" : classification
-    })
+    return get_humblebrag(text)        
 
 
 
