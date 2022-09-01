@@ -1,6 +1,7 @@
 import openai
 import os
 import pandas as pd
+import json
 
 
 
@@ -98,6 +99,46 @@ def get_accuracy_score(ft_id):
     csv_file.close()
     df = pd.read_csv("results.csv")
     return df
+
+def convert_json_export_to_csv(json_file_export, output_name="new_training_data.csv"):
+    # Given a json file from Firebase, convert it into a CSV file equivalent to the one used in fine_tune_humblebrag (but do not merge)
+    f = open(json_file_export)
+    data = json.load(f)
+    cleaned_data = []
+    for key, value in data.items():
+        cleaned_data.append(value)
+
+    df = pd.DataFrame(cleaned_data)
+
+    df = df[(df.label == 1.0) | (df.label == -1.0)] # only include the newer labelling system
+    df = df[df.feedbackType == "bragging"] # only include the bragging feedback (not selling stuff)
+    df = df.dropna()
+
+    def label_corrector(extensionLabel, label):
+        if extensionLabel:
+            if label == 1.0:
+                return 1
+            else:
+                return 0
+        else:
+            if label == 1.0:
+                return 0
+            else:
+                return 1
+
+    df["completion"] = df.apply(lambda row: label_corrector(row.extensionLabel, row.label), axis=1)
+    df = df.rename(columns={"text" : "prompt"})
+    df = df[["prompt", "completion"]]
+
+    df.to_csv(output_name, index=False)
+
+    return df
+    
+
+
+
+    
+
 
 
 
