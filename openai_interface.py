@@ -88,8 +88,16 @@ def fine_tune_humblebrag(csv_file):
     )
 
 
-def get_accuracy_score(FineTuneProcess):
-    return
+def get_accuracy_score(ft_id):
+    openai.api_key = OPENAI_API_KEY
+    FineTune = openai.FineTune.retrieve(ft_id)
+    result_file_id = FineTune.result_files[0].id
+    content = openai.File.download(result_file_id)
+    with open("results.csv", "wb") as csv_file:
+        csv_file.write(content)
+    csv_file.close()
+    df = pd.read_csv("results.csv")
+    return df
 
 
 
