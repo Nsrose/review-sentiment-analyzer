@@ -71,7 +71,7 @@ def fine_tune_humblebrag(csv_file):
     df.completion = df.completion.apply(number_to_label)
     df.prompt = df.prompt.apply(lambda p: p + "\n\n###\n\n")
 
-    train_df = df.sample(frac=0.6)
+    train_df = df.sample(frac=0.75)
     test_df = df.drop(train_df.index)
 
 
@@ -146,7 +146,7 @@ def openai_classify_humblebrag(text):
     openai.api_key = OPENAI_API_KEY
     prompt = text + "\n\n###\n\n"
     return openai.Completion.create(
-        model='curie:ft-personal-2022-08-31-20-49-07',
+        model="curie:ft-personal-2022-09-01-19-33-22",
         prompt=prompt,
         max_tokens=1,
         temperature=0
