@@ -17,6 +17,8 @@ import json
 from flask import Flask
 from flask_caching import Cache
 
+# import pdb 
+
 
 
 config = {
@@ -85,7 +87,7 @@ limiter = Limiter(app, key_func=get_remote_address)
 
 @cache.memoize(86400) #cache for 24 hours
 def get_answer(text, question):
-    answer = openai_answer(question, text, completion_start="Answer:").get('choices')[0].text.strip('\n')
+    answer = openai_answer(question, text).get('choices')[0].message.content.strip("\n")
     return jsonify({
         "question" : question,
         "answer" : answer
@@ -116,6 +118,10 @@ def airbnb_reviews(PropertyID):
         text = ' '.join(comments)
         return jsonify(text)
     return jsonify(reviews)
+
+
+
+
 
 
 

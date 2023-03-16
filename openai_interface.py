@@ -51,11 +51,15 @@ def openai_answer(question, text, extra_context="", temperature=0, max_tokens=10
     prompt += question + '\n\n##\n\n'
     prompt += completion_start
 
-    return openai.Completion.create(
-        model='text-davinci-002',
-        prompt=prompt,
-        max_tokens=max_tokens,
-        temperature=temperature
+
+    messages = [
+        {"role" : "user",
+         "content" : prompt}
+    ]
+
+    return openai.ChatCompletion.create(
+        model='gpt-4',
+        messages=messages
     )
 
 

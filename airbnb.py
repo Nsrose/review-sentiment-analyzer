@@ -10,7 +10,7 @@ PRESTON_PROPERTY_ID = 31609555
 def get_reviews(propertyid):
 	params = {
 		"propertyId" : str(propertyid),
-		"totalRecords": "40"
+		"totalRecords": "100"
 	}
 	url = AIRBNB_API_URL + "getPropertyReviews"
 
